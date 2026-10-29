@@ -1,0 +1,11 @@
+**
+!Dockerfile
+!requirements.txt
+!backend/
+!backend/**
+!playback_simulator/
+!playback_simulator/__init__.py
+!playback_simulator/simulator.py
+!playback_simulator/chaoxing_client.py
+**/__pycache__/
+**/*.pyc

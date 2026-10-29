@@ -1,0 +1,2 @@
+cryptography==50.0.2
+fonttools==4.67.0

@@ -1,0 +1,25 @@
+[Unit]
+Description=Course learning backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=xxt
+Group=xxt
+WorkingDirectory=/opt/xxt
+ExecStart=/opt/xxt/.venv/bin/python -m backend.server --host 127.0.0.1 --port 8080 --public-origin https://learn.example.com --data-dir /var/lib/xxt --max-jobs 4
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=55
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/xxt
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

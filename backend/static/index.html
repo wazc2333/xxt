@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light"><title>课程学习台</title>
+  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/tasks.css"><script src="/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><div class="brand">L<span>·</span></div><div><p class="eyebrow">LEARNING WORKSPACE</p><h1>课程学习台</h1></div><span id="connection" class="badge">未登录</span></header>
+    <p class="intro">进入课程，选择章节学习，或按顺序处理作业。</p>
+    <div id="notice" class="notice" role="status" hidden></div>
+    <section id="login-panel" class="panel login">
+      <div><p class="eyebrow">01 / CONNECT</p><h2>登录课程学习台</h2><p class="muted">扫码或使用 Cookie 登录，连接后自动获取你的课程。同一浏览器保留登录 30 天，活跃时续期；关闭浏览器、重启后端后可恢复。主动退出会清除保存的凭证。</p></div>
+      <div class="login-tabs" role="tablist" aria-label="登录方式"><button id="qr-tab" type="button" role="tab" aria-selected="true" aria-controls="qr-panel">扫码登录</button><button id="cookie-tab" type="button" role="tab" aria-selected="false" aria-controls="login-form" tabindex="-1">Cookie 登录</button></div>
+      <p class="caption">管理员可查看账号标识、登录记录与当前任务状态；退出后保留登录记录。</p>
+      <section id="qr-panel" class="qr-panel" role="tabpanel" aria-labelledby="qr-tab">
+        <div class="qr-frame"><img id="qr-image" width="220" height="220" alt="学习通扫码登录二维码" hidden><span id="qr-placeholder">正在获取二维码…</span></div>
+        <p id="qr-status" class="qr-status" role="status">使用学习通 App 扫码，并在手机上确认登录。</p><p id="qr-expiry" class="caption"></p>
+        <button id="qr-refresh" type="button" class="secondary">刷新二维码</button><p class="caption">二维码仅用于本次登录，请使用本人的学习通账号。</p>
+      </section>
+      <form id="login-form" role="tabpanel" aria-labelledby="cookie-tab" hidden><label for="cookie">Cookie</label><textarea id="cookie" rows="5" autocomplete="off" spellcheck="false" required placeholder="name=value; name2=value2"></textarea><button id="login" type="submit">登录并获取课程 <span aria-hidden="true">→</span></button></form>
+    </section>
+    <div id="workspace" hidden>
+      <div class="toolbar"><span class="muted">已连接 · 按需读取所选章节或作业</span><button id="logout" class="text-button">退出登录</button></div>
+      <div class="columns">
+        <div class="selection-stack">
+          <section id="course-list-page" class="panel"><div class="panel-head"><div><p class="eyebrow">02 / COURSE</p><h2>我的课程 <span id="course-count" class="count">0</span></h2></div><button id="refresh" class="text-button">刷新</button></div>
+            <div id="courses" class="course-list" role="group" aria-label="选择课程"></div>
+          </section>
+          <section id="course-page" class="panel" hidden><button id="back" class="text-button back">← 我的课程</button><div class="panel-head"><div><p id="course-kind" class="eyebrow">03 / CHAPTERS</p><h2 id="course-title">课程</h2></div><button id="rescan" class="text-button" disabled>重读目录</button></div>
+            <div class="course-tabs" role="tablist" aria-label="课程内容"><button id="chapters-tab" type="button" role="tab" aria-selected="true" aria-controls="chapter-mode">章节</button><button id="homework-tab" type="button" role="tab" aria-selected="false" aria-controls="homework-mode">作业</button></div>
+            <section id="chapter-mode" role="tabpanel" aria-labelledby="chapters-tab">
+            <p id="chapters-hint" class="muted">正在读取章节目录…</p>
+            <div id="chapter-progress" class="chapter-progress" hidden><span id="chapter-progress-text"></span><progress id="chapter-progress-bar" value="0" max="1" aria-label="服务器任务点完成进度"></progress></div>
+            <div id="chapter-picker" hidden>
+              <div class="select-bar"><label><input id="select-all" type="checkbox"> 全选章节 <span id="chapter-count" class="count">0</span></label><span id="selected-count" class="muted">已选 0 章</span></div>
+              <div id="chapters" class="chapter-list" role="group" aria-label="选择学习章节"></div>
+            </div>
+            <label class="quiz-policy"><input id="quiz-submit" type="checkbox" checked><span>自动提交章节测验<small>默认优先本地题库，未命中时调用 DeepSeek；简答题直接生成。使用下方通用 SK，不支持的题型跳过。</small></span></label>
+            <label class="quiz-policy random-policy"><input id="quiz-random" type="checkbox"><span>随机选择选项<small>勾选后不查询题库或调用 DeepSeek；保留已有有效作答，空白选择题随机选一个实际选项。不保证正确，提交可能计入成绩。</small></span></label>
+            <div class="start-bar"><button id="start" disabled>一键学习所选章节</button><p class="caption">按原目录顺序逐章处理，执行到本章才读取任务。</p></div>
+            </section>
+            <section id="homework-mode" role="tabpanel" aria-labelledby="homework-tab" hidden>
+              <div class="panel-head"><p class="muted">课程作业</p><button id="homework-refresh" class="text-button">刷新作业</button></div>
+              <p id="homework-hint" class="muted">正在读取作业标题…</p>
+              <div id="homework-picker" hidden><div class="select-bar"><label><input id="homework-all" type="checkbox"> 全选作业 <span id="homework-count" class="count">0</span></label><span id="homework-selected" class="muted">已选 0 份</span></div><div id="homework-list" class="chapter-list" role="group" aria-label="选择课程作业"></div></div>
+              <div class="start-bar"><button id="homework-start" disabled>一键提交所选作业</button><p class="caption">按列表顺序逐份打开详情、获取答案并正式提交。已提交的作业会跳过；未知题型或答案无效时不提交该份作业。</p></div>
+            </section>
+            <div class="deepseek-config"><label for="deepseek-key">DeepSeek SK · 当前用户通用</label><input id="deepseek-key" type="password" autocomplete="off" spellcheck="false" maxlength="256" placeholder="sk-…，已配置时无需重复填写"><div class="config-actions"><span id="deepseek-status" class="caption">正在读取配置…</span><button id="deepseek-save" type="button" class="text-button">保存 SK</button><button id="deepseek-clear" type="button" class="text-button">清除 SK</button></div><p class="caption">章节测验与作业共用此 SK 和题库。V4.1-Flash-1017 · 最低思考 low。选择题优先本地题库，未命中时交给 DeepSeek；简答题直接生成。调用会向 DeepSeek 发送题干和选项并产生 API 用量，生成结果不保证正确。</p></div>
+            <details class="bank-tools"><summary>本地题库 <span id="bank-count" class="count">0</span></summary><p class="caption">题库按当前登录用户隔离并保存在后端本机，章节测验和作业共用，重启后仍保留。可导入 JSON；选择题生成结果会缓存，简答题不查题库。</p><input id="bank-file" type="file" accept=".json,application/json" aria-label="导入题库 JSON"><div class="config-actions"><button id="bank-example" class="text-button" type="button">下载格式示例</button><button id="bank-export" class="text-button" type="button">导出题库</button></div></details>
+          </section>
+        </div>
+        <section class="panel progress-panel"><div class="panel-head"><div><p class="eyebrow">04 / PROGRESS</p><h2>任务进度</h2></div><span id="job-status" class="badge">待开始</span></div>
+          <div id="idle" class="empty"><div class="empty-icon">◷</div><h3>准备好就开始</h3><p class="muted">先进入课程并选择章节或作业，进度会显示在这里。</p></div>
+          <div id="job" hidden>
+            <p id="job-course" class="job-course"></p><h3 id="job-chapter"></h3><p id="job-video" class="muted"></p><p id="selection-summary" class="caption"></p>
+            <div class="time-line"><strong id="position">00:00 / 00:00</strong><span id="percent" class="muted">0%</span></div><progress id="progress" max="100" value="0">0%</progress>
+            <div class="stats"><div><strong id="passed">0</strong><span id="passed-label">服务器已确认视频</span></div><div><strong id="discovered">0</strong><span id="discovered-label">已处理视频</span></div><div><strong id="reports">0</strong><span id="reports-label">当前视频有效响应</span></div></div>
+            <p id="job-message" class="job-message" role="status"></p>
+            <p id="platform-check" class="caption" hidden><a href="https://i.chaoxing.com/" target="_blank" rel="noopener noreferrer">打开超星完成访问验证</a>，完成后请退出当前登录，重新扫码或使用更新后的 Cookie 登录。</p>
+            <dl id="learning-detail" class="detail"><div><dt>服务器完成状态</dt><dd id="server-passed">待确认</dd></div><div><dt>服务器累计学时</dt><dd>接口未返回</dd></div><div><dt>本次接受提交的测验</dt><dd id="quiz-submitted">0</dd></div><div><dt>已确认通过的测验</dt><dd id="quiz-passed">0</dd></div><div><dt>测验尚未确认通过</dt><dd id="quiz-unconfirmed">0</dd></div><div><dt>题库命中</dt><dd id="quiz-bank-hits">0</dd></div><div><dt>DeepSeek 生成题数</dt><dd id="quiz-generated">0</dd></div><div><dt>其中简答题</dt><dd id="quiz-short">0</dd></div><div><dt>需处理或跳过的任务</dt><dd id="unsupported">0</dd></div></dl>
+            <dl id="homework-detail" class="detail" hidden><div><dt>列表确认完成</dt><dd id="homework-confirmed">0</dd></div><div><dt>题库命中</dt><dd id="homework-bank-hits">0</dd></div><div><dt>DeepSeek 生成题数</dt><dd id="homework-generated">0</dd></div><div><dt>其中简答题</dt><dd id="homework-short">0</dd></div><div><dt>需处理的作业</dt><dd id="homework-failed">0</dd></div><div><dt>提交接受但尚未确认完成</dt><dd id="homework-unconfirmed">0</dd></div></dl>
+            <ul id="chapter-queue" class="course-states" aria-label="章节执行队列"></ul><ul id="notes" class="notes"></ul>
+            <button id="stop" class="secondary">停止任务</button>
+          </div>
+          <p id="progress-note" class="caption footer-note">目录页不读取任务。启动后仅处理所选章节，视频按实际时间推进；测验提交成功与任务通过分别核对。</p>
+        </section>
+      </div>
+    </div>
+    <footer>课程学习台 <span>·</span> Windows / Ubuntu <span>·</span> <a href="/admin">管理后台</a></footer>
+  </main>
+</body>
+</html>
